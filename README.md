@@ -1,275 +1,155 @@
-# Copilot Agent 365 - Enterprise AI Assistant
+# Azure ARM Template Tester - Copilot Agent 365
 
-## 🚀 One-Click Setup - Fully Automated!
+## Quick Deploy
 
-### Step 1: Deploy to Azure (1 minute)
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkody-w%2FCopilot-Agent-365%2Fmain%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fkody-w%2FAzureARMTester%2Fmain%2Fazuredeploy.json)
 
-### Step 2: Copy & Run Setup Script (2 minutes)
+## What This Deploys
 
-After deployment completes, you'll see "Your deployment is complete" ✅
+This template deploys a complete Copilot Agent 365 infrastructure with:
+- Azure Functions (Python 3.11)
+- Azure OpenAI Service (GPT-4o)
+- Storage Account
+- Application Insights
 
-1. Click the **"Outputs"** tab on the left sidebar (see screenshots below)
-2. Find and copy the entire script value:
-   - **Windows users**: Copy `windowsSetupScript` 
-   - **Mac/Linux users**: Copy `macLinuxSetupScript`
-3. Save it as a file and run:
+## Cross-Region Deployment Fix
 
-![Click Outputs Tab](docs/images/afterTemplate1.png)
-*First, click on "Outputs" in the left sidebar*
+This template includes fixes for the 403 Forbidden error that affects cross-region deployments:
+- Proper dependency chains
+- Explicit file service creation
+- Network ACL configurations
+- Unique resource naming
 
-![Copy Script Value](docs/images/afterTemplate2.png)
-*Then copy your platform's setup script*
+## Deployment Instructions
 
-**Windows (PowerShell):**
-```powershell
-.\setup.ps1
-```
-If you get a security error, first run: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`
+### Option 1: Deploy Button (Easiest)
+1. Click the "Deploy to Azure" button above
+2. Fill in the parameters:
+   - **Resource Group**: Select or create new
+   - **Location**: Choose your preferred region (must have OpenAI quota)
+   - **Storage Account Name**: Must be globally unique (3-24 chars, lowercase/numbers only)
+   - Leave other parameters as default or customize
 
-**Mac/Linux (Terminal):**
+### Option 2: Azure CLI
 ```bash
-bash setup.sh
+# Clone this repo
+git clone https://github.com/kody-w/AzureARMTester.git
+cd AzureARMTester
+
+# Deploy
+az deployment group create \
+  --resource-group "YourResourceGroup" \
+  --template-file azuredeploy.json \
+  --parameters storageAccountName="uniquename$(date +%s)"
 ```
 
-**That's it!** Your AI assistant is now running both in Azure and locally with all settings automatically configured. 🎉
-
----
-
-## ✨ What You Get
-
-- 🧠 **GPT-4 Powered** - Latest Azure OpenAI models
-- 💾 **Persistent Memory** - Remembers conversations across sessions
-- 🔐 **Enterprise Security** - Function-level authentication
-- ⚡ **Auto-scaling** - Serverless Azure Functions
-- 🎨 **Web Chat Interface** - Beautiful UI included
-- 🔧 **Zero Configuration** - All Azure settings automatically configured
-
-## 🎯 Key Features
-
-### Fully Automated Setup
-- **Auto-installs Python 3.11** if not found (required for Azure Functions v4)
-- **Handles all path issues** including spaces in "Program Files"
-- **Configures all Azure settings** automatically from your deployment
-- **No manual editing required** - everything just works!
-
-### Memory System
-- Stores conversation context per user
-- Maintains shared knowledge base
-- Persistent across sessions
-
-### Agent System
-- Modular agent architecture
-- Easy to add custom agents
-- Built-in memory management agents
-
-## 📋 Prerequisites
-
-The setup script will automatically install missing components, but you'll need:
-
-### Windows
-- **Azure Account** - [Get free trial](https://azure.microsoft.com/free/)
-- **PowerShell** - Already installed on Windows
-- Everything else auto-installs! ✨
-
-### Mac/Linux
-- **Azure Account** - [Get free trial](https://azure.microsoft.com/free/)
-- **Python 3.9-3.11** - `brew install python@3.11` (Mac) or `apt-get install python3.11` (Linux)
-- **Git** - `brew install git` (Mac) or `apt-get install git` (Linux)
-- **Node.js** - `brew install node` (Mac) or from [nodejs.org](https://nodejs.org/)
-
-Then install Azure Functions Core Tools:
-```bash
-npm install -g azure-functions-core-tools@4
-```
-
-## 🎯 Quick Start After Setup
-
-Once setup is complete, you can start your bot anytime with:
-
-### Windows
+### Option 3: PowerShell
 ```powershell
-cd Copilot-Agent-365
-.\run.ps1
+# Clone this repo
+git clone https://github.com/kody-w/AzureARMTester.git
+cd AzureARMTester
+
+# Deploy
+$timestamp = Get-Date -Format "MMddHHmm"
+New-AzResourceGroupDeployment `
+  -ResourceGroupName "YourResourceGroup" `
+  -TemplateFile "azuredeploy.json" `
+  -storageAccountName "st$timestamp"
 ```
 
-### Mac/Linux
+## If Deployment Fails with 403 Error
+
+This usually happens with cross-region deployments. Try:
+
+1. **Use a unique storage account name** with timestamp:
+   - Example: `stcop365$(date +%s)` or `stcop365[MMDD][HHMM]`
+
+2. **Wait and retry**:
+   - If it fails, wait 2-3 minutes and try again
+   - Azure needs time to propagate storage accounts globally
+
+3. **Try a different region**:
+   - Use a region closer to your location
+   - Ensure the region supports Azure OpenAI
+
+## Available Regions
+
+Regions that support Azure OpenAI:
+- **Americas**: eastus, eastus2, northcentralus, southcentralus, westus, westus3, canadaeast
+- **Europe**: westeurope, northeurope, uksouth, francecentral, germanywestcentral, swedencentral, norwayeast, switzerlandnorth
+- **Asia Pacific**: australiaeast, japaneast, centralindia
+- **Africa**: southafricanorth
+
+## Post-Deployment
+
+After successful deployment, you'll get:
+1. **Function App URL**: The endpoint for your bot
+2. **All Credentials**: Available in deployment outputs
+3. **Setup Scripts**: Windows and Mac/Linux scripts with your actual values
+
+### Get Your Function URL
+After deployment, find your function URL in the outputs:
 ```bash
-cd Copilot-Agent-365
-./run.sh
+# Azure CLI
+az deployment group show \
+  --resource-group "YourResourceGroup" \
+  --name "YourDeploymentName" \
+  --query properties.outputs.functionUrlWithKey.value
 ```
 
-Then:
-- **Local API**: http://localhost:7071/api/businessinsightbot_function
-- **Web Chat**: Open `client/index.html` in your browser
-- **Azure URL**: Automatically shown after setup (includes auth key)
+### Local Development Setup
+The deployment outputs include complete setup scripts for:
+- **Windows**: Copy the `windowsSetupScript` output to `setup.ps1`
+- **Mac/Linux**: Copy the `macLinuxSetupScript` output to `setup.sh`
 
-## 💬 Test Your Bot
+These scripts automatically:
+- Install Python 3.11 (if needed)
+- Install all dependencies
+- Configure your local environment with YOUR Azure values
+- Set up the development environment
 
-### PowerShell (Windows)
+## Testing the Deployment
+
+### Test via cURL
+```bash
+curl -X POST "YOUR_FUNCTION_URL" \
+  -H "Content-Type: application/json" \
+  -d '{"user_input": "Hello", "conversation_history": []}'
+```
+
+### Test via PowerShell
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:7071/api/businessinsightbot_function" `
+Invoke-RestMethod -Uri "YOUR_FUNCTION_URL" `
   -Method Post `
   -Body '{"user_input": "Hello", "conversation_history": []}' `
   -ContentType "application/json"
 ```
 
-### Curl (Mac/Linux)
-```bash
-curl -X POST http://localhost:7071/api/businessinsightbot_function \
-  -H "Content-Type: application/json" \
-  -d '{"user_input": "Hello", "conversation_history": []}'
-```
+## Troubleshooting
 
-## 🛠️ Customization
+### Storage Account Issues
+- Error: "Storage account already exists"
+  - Solution: Use a more unique name with timestamp
 
-### Change Your Bot's Personality
-Edit these in Azure Portal → Function App → Configuration:
-- `ASSISTANT_NAME` - Your bot's name
-- `CHARACTERISTIC_DESCRIPTION` - Your bot's personality
+### OpenAI Quota Issues
+- Error: "The subscription does not have QuotaId/Feature required"
+  - Solution: Choose a region where you have OpenAI quota
+  - Check quota: Azure Portal → Subscriptions → Usage + quotas
 
-### Add Custom Agents
-Create new file in `agents/` folder:
-```python
-from agents.basic_agent import BasicAgent
+### Cross-Region 403 Errors
+- Error: "Creation of storage file share failed with: 'The remote server returned an error: (403) Forbidden'"
+  - Solution: This template includes fixes, but if still occurs:
+    1. Use a unique storage name
+    2. Wait 2-3 minutes between retries
+    3. Try deploying to your local region
 
-class MyCustomAgent(BasicAgent):
-    def __init__(self):
-        self.name = 'MyCustom'
-        self.metadata = {
-            "name": self.name,
-            "description": "What this agent does",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "input": {
-                        "type": "string",
-                        "description": "Input parameter"
-                    }
-                },
-                "required": ["input"]
-            }
-        }
-        super().__init__(self.name, self.metadata)
-    
-    def perform(self, **kwargs):
-        input_data = kwargs.get('input', '')
-        # Your logic here
-        return f"Processed: {input_data}"
-```
+## Support
 
-## 🔄 How It Works
+For issues or questions:
+- Check the deployment outputs for detailed error messages
+- Review the Azure Activity Log for more details
+- Ensure you have appropriate Azure permissions and quotas
 
-### Deployment Process
-1. **Azure deploys** all resources (OpenAI, Storage, Function App)
-2. **Setup script** is generated with YOUR credentials embedded
-3. **Running the script**:
-   - Installs Python 3.11 if needed
-   - Clones the repository
-   - Creates `local.settings.json` with your Azure values
-   - Sets up Python environment
-   - Installs all dependencies
-   - Creates run scripts
+## License
 
-### No Manual Configuration!
-The setup script automatically includes:
-- ✅ Your Azure Storage connection string
-- ✅ Your OpenAI API key and endpoint
-- ✅ Your Function App details
-- ✅ All other required settings
-
-## 📁 Project Structure
-
-```
-Copilot-Agent-365/
-├── function_app.py            # Main Azure Function
-├── agents/                    # AI agents
-│   ├── basic_agent.py        # Base agent class
-│   ├── context_memory_agent.py
-│   └── manage_memory_agent.py
-├── utils/                     # Utilities
-│   └── azure_file_storage.py
-├── client/                    # Web UI
-│   └── index.html
-├── requirements.txt           # Python dependencies
-├── host.json                  # Azure Functions config
-├── run.ps1                    # Windows run script (auto-created)
-├── run.bat                    # Windows batch script (auto-created)
-├── run.sh                     # Mac/Linux run script (auto-created)
-└── local.settings.json        # Azure settings (auto-created with YOUR values)
-```
-
-## 🚨 Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| "Python 3.11 not found" | Script auto-installs it! Just wait 2-3 minutes |
-| "C:\Program Files" error | Fixed! Script handles spaces in paths |
-| "func: command not found" | Run: `npm install -g azure-functions-core-tools@4` |
-| Port already in use | Edit `run.ps1` or `run.sh` and change to `func start --port 7072` |
-| "az login" needed | Run `az login` to deploy code to Azure (optional) |
-
-## 💡 Python Version Important!
-- **Use Python 3.11** (automatically installed by script)
-- **Don't use Python 3.13+** (causes compatibility issues with Azure Functions)
-- Script specifically installs and uses Python 3.11 to avoid issues
-
-## 💰 Cost
-
-- **Function App**: ~$0 (free tier covers most usage)
-- **Storage**: ~$5/month
-- **OpenAI**: Pay per token used (~$0.01 per 1K tokens)
-
-**Total: ~$5/month + OpenAI usage**
-
-## 🔐 Security
-
-- **API keys are embedded securely** in the generated setup script
-- **Never commit** `local.settings.json` to Git (contains secrets)
-- **Function requires authentication** key for API access
-- **All traffic uses HTTPS**
-- **Keys are unique** to your deployment
-
-## 🆕 What's New
-
-### Version 2.0 - Full Automation
-- ✨ **Auto-configuration** - No manual editing of settings
-- 🔧 **Python path fix** - Handles "Program Files" spaces
-- 🐍 **Python 3.11 auto-install** - Windows script installs if missing
-- 📦 **Fixed package versions** - Prevents compatibility issues
-- 🚀 **True one-click deploy** - Everything configured automatically
-
-## 🤝 Contributing
-
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📜 License
-
-MIT License - See [LICENSE](LICENSE)
-
-## 🆘 Support
-
-- **Issues**: [GitHub Issues](https://github.com/kody-w/Copilot-Agent-365/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/kody-w/Copilot-Agent-365/discussions)
-
-## 🌟 Why This Project?
-
-This project makes enterprise AI accessible to everyone by:
-- **Removing complexity** - One-click deployment with zero configuration
-- **Handling all setup** - Automatically installs and configures everything
-- **Providing memory** - Your AI remembers context across conversations
-- **Enabling customization** - Easy to add your own agents and features
-
----
-
-<p align="center">
-  <strong>Deploy your own AI assistant in under 3 minutes!</strong>
-  <br><br>
-  <a href="https://github.com/kody-w/Copilot-Agent-365">⭐ Star this repo</a> if it helped you!
-  <br><br>
-  Made with ❤️ for the community
-</p>
+MIT
